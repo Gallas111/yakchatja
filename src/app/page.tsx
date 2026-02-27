@@ -16,26 +16,6 @@ import {
   SIDO_LIST,
 } from '@/lib/utils';
 
-/** 약국 주소에서 읍/면/동/리/가 추출 */
-function extractDongsFromPharmacies(data: PharmacyRaw[]): string[] {
-  const dongs = new Set<string>();
-  for (const p of data) {
-    const addr = p.dutyAddr;
-    if (!addr) continue;
-    const parts = addr.split(/\s+/);
-    for (const part of parts) {
-      if (part.length >= 2 && /[동읍면리]$/.test(part) && !/[시도구군]$/.test(part)) {
-        dongs.add(part);
-        break;
-      }
-      if (part.length >= 2 && /\d가$/.test(part)) {
-        dongs.add(part);
-        break;
-      }
-    }
-  }
-  return Array.from(dongs).sort();
-}
 
 export default function Home() {
   const [pharmacies, setPharmacies] = useState<PharmacyRaw[]>([]);
@@ -56,7 +36,6 @@ export default function Home() {
   const [holidayOnly, setHolidayOnly] = useState(false);
   const [nearbyLoading, setNearbyLoading] = useState(false);
   const [focusUser, setFocusUser] = useState(false);
-  const [dongList, setDongList] = useState<string[]>([]);
 
   // GPS 위치 가져오기
   useEffect(() => {
@@ -141,7 +120,6 @@ export default function Home() {
 
       if (data.pharmacies) {
         setPharmacies(data.pharmacies);
-        setDongList(extractDongsFromPharmacies(data.pharmacies));
         setDong('');
         applyFilters(data.pharmacies);
       }
@@ -214,7 +192,6 @@ export default function Home() {
 
       if (data.pharmacies) {
         setPharmacies(data.pharmacies);
-        setDongList(extractDongsFromPharmacies(data.pharmacies));
         setDong('');
         applyFilters(data.pharmacies);
       }
@@ -259,7 +236,6 @@ export default function Home() {
 
       if (data.pharmacies) {
         setPharmacies(data.pharmacies);
-        setDongList(extractDongsFromPharmacies(data.pharmacies));
         if (!newDong) setDong('');
         applyFilters(data.pharmacies);
       }
@@ -290,7 +266,6 @@ export default function Home() {
         .then(data => {
           if (data.pharmacies) {
             setPharmacies(data.pharmacies);
-            setDongList(extractDongsFromPharmacies(data.pharmacies));
             applyFilters(data.pharmacies);
           }
         })
@@ -298,7 +273,6 @@ export default function Home() {
         .finally(() => setLoading(false));
     } else {
       setDong('');
-      setDongList([]);
     }
   }, [sido, applyFilters]);
 
@@ -358,7 +332,6 @@ export default function Home() {
           onHolidayOnlyChange={setHolidayOnly}
           onSearch={handleSearch}
           onAddressSelect={handleAddressSelect}
-          dongList={dongList}
           loading={loading}
         />
 

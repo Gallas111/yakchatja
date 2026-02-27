@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { SIDO_LIST } from '@/lib/utils';
 import { SIGUNGU_MAP } from '@/lib/regions';
+import { DONG_MAP } from '@/lib/dong-data';
 
 interface AddressResult {
   sido: string;
@@ -28,7 +29,6 @@ interface Props {
   onHolidayOnlyChange: (v: boolean) => void;
   onSearch: () => void;
   onAddressSelect: (sido: string, sigungu: string, dong?: string) => void;
-  dongList: string[];
   loading: boolean;
 }
 
@@ -49,9 +49,16 @@ export default function SearchFilter({
   onHolidayOnlyChange,
   onSearch,
   onAddressSelect,
-  dongList,
   loading,
 }: Props) {
+  // 시군구 선택에 따라 정적 데이터에서 읍/면/동 목록 계산
+  const dongList: string[] = (() => {
+    if (!sido || !sigungu) return [];
+    // 세종특별자치시는 시군구가 없으므로 특수 처리
+    const sidoData = DONG_MAP[sido];
+    if (!sidoData) return [];
+    return sidoData[sigungu] || [];
+  })();
   const [addressQuery, setAddressQuery] = useState('');
   const [addressResults, setAddressResults] = useState<AddressResult[]>([]);
   const [showResults, setShowResults] = useState(false);
