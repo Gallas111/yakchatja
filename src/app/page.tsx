@@ -6,6 +6,7 @@ import KakaoMap from '@/components/KakaoMap';
 import PharmacyList from '@/components/PharmacyList';
 import SearchFilter from '@/components/SearchFilter';
 import { PharmacyRaw } from '@/lib/pharmacy-api';
+import { useFavorites } from '@/hooks/useFavorites';
 import {
   getTodayHours,
   isOpenNow,
@@ -36,6 +37,7 @@ export default function Home() {
   const [holidayOnly, setHolidayOnly] = useState(false);
   const [nearbyLoading, setNearbyLoading] = useState(false);
   const [focusUser, setFocusUser] = useState(false);
+  const { favorites, isFavorite, toggleFavorite } = useFavorites();
 
   // GPS 위치 가져오기
   useEffect(() => {
@@ -355,6 +357,9 @@ export default function Home() {
               selectedId={selectedId}
               onSelect={(p) => setSelectedId(p.dutyName)}
               loading={loading}
+              favorites={favorites}
+              isFavorite={isFavorite}
+              onToggleFavorite={toggleFavorite}
             />
           </div>
         </div>

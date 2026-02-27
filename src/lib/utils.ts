@@ -92,6 +92,54 @@ export function getTodayName(): string {
   return DAY_NAMES[new Date().getDay()];
 }
 
+/** 전체 주간 영업시간 반환 (월~일 + 공휴일) */
+export function getWeeklyHours(pharmacy: Record<string, string | undefined>) {
+  const labels = ['월', '화', '수', '목', '금', '토', '일', '공휴일'];
+  return labels.map((label, i) => {
+    const idx = i + 1;
+    const open = pharmacy[`dutyTime${idx}s`];
+    const close = pharmacy[`dutyTime${idx}c`];
+    return {
+      label,
+      hours: open && close ? { open: String(open), close: String(close) } : null,
+    };
+  });
+}
+
+/** 마감까지 / 영업 시작까지 남은 시간 텍스트 반환 */
+export function getTimeRemaining(hours: PharmacyHours | null): string {
+  if (!hours) return '';
+
+  const now = new Date();
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+  const openPadded = hours.open.padStart(4, '0');
+  const closePadded = hours.close.padStart(4, '0');
+  const openMinutes = parseInt(openPadded.slice(0, 2)) * 60 + parseInt(openPadded.slice(2, 4));
+  let closeMinutes = parseInt(closePadded.slice(0, 2)) * 60 + parseInt(closePadded.slice(2, 4));
+
+  if (closeMinutes <= openMinutes) closeMinutes += 24 * 60;
+
+  if (isOpenNow(hours)) {
+    const adjusted = currentMinutes < openMinutes ? currentMinutes + 24 * 60 : currentMinutes;
+    const diff = closeMinutes - adjusted;
+    if (diff <= 0) return '';
+    const h = Math.floor(diff / 60);
+    const m = diff % 60;
+    if (h > 0) return m > 0 ? `${h}시간 ${m}분 후 마감` : `${h}시간 후 마감`;
+    return `${m}분 후 마감`;
+  } else {
+    if (currentMinutes < openMinutes) {
+      const diff = openMinutes - currentMinutes;
+      const h = Math.floor(diff / 60);
+      const m = diff % 60;
+      if (h > 0) return m > 0 ? `${h}시간 ${m}분 후 영업` : `${h}시간 후 영업`;
+      return `${m}분 후 영업`;
+    }
+    return '';
+  }
+}
+
 /** 거리 계산 (Haversine) - km 반환 */
 export function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371;
