@@ -270,6 +270,38 @@ export default function Home() {
     }
   }, [applyFilters]);
 
+  // 시군구 선택 시 자동 검색 (읍면동 드롭다운 채우기)
+  const handleSigunguChange = useCallback((newSigungu: string) => {
+    setSigungu(newSigungu);
+
+    if (sido && newSigungu) {
+      setLoading(true);
+      setSelectedId(undefined);
+      setFocusUser(false);
+      setDong('');
+
+      const params = new URLSearchParams();
+      params.set('Q0', sido);
+      params.set('Q1', newSigungu);
+      params.set('numOfRows', '200');
+
+      fetch(`/api/pharmacies?${params}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.pharmacies) {
+            setPharmacies(data.pharmacies);
+            setDongList(extractDongsFromPharmacies(data.pharmacies));
+            applyFilters(data.pharmacies);
+          }
+        })
+        .catch(err => console.error('검색 실패:', err))
+        .finally(() => setLoading(false));
+    } else {
+      setDong('');
+      setDongList([]);
+    }
+  }, [sido, applyFilters]);
+
   // 필터 변경 시 재적용
   useEffect(() => {
     if (pharmacies.length > 0) {
@@ -318,7 +350,7 @@ export default function Home() {
           sundayOnly={sundayOnly}
           holidayOnly={holidayOnly}
           onSidoChange={setSido}
-          onSigunguChange={setSigungu}
+          onSigunguChange={handleSigunguChange}
           onDongChange={setDong}
           onOnlyOpenChange={setOnlyOpen}
           onNightOnlyChange={setNightOnly}
