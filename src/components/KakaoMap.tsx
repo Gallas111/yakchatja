@@ -15,10 +15,11 @@ interface Props {
   userLat?: number;
   userLng?: number;
   selectedId?: string;
+  focusUser?: boolean;
   onMarkerClick?: (pharmacy: PharmacyRaw) => void;
 }
 
-export default function KakaoMap({ pharmacies, userLat, userLng, selectedId, onMarkerClick }: Props) {
+export default function KakaoMap({ pharmacies, userLat, userLng, selectedId, focusUser, onMarkerClick }: Props) {
   const mapRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mapInstanceRef = useRef<any>(null);
@@ -165,9 +166,15 @@ export default function KakaoMap({ pharmacies, userLat, userLng, selectedId, onM
     });
 
     if (hasValidCoord && pharmacies.length > 0) {
-      map.setBounds(bounds);
+      if (focusUser && userLat && userLng) {
+        // 내 주변 검색: 내 위치 중심으로 가깝게 확대
+        map.setCenter(new window.kakao.maps.LatLng(userLat, userLng));
+        map.setLevel(4);
+      } else {
+        map.setBounds(bounds);
+      }
     }
-  }, [pharmacies, selectedId, userLat, userLng, onMarkerClick]);
+  }, [pharmacies, selectedId, userLat, userLng, focusUser, onMarkerClick]);
 
   return (
     <div className="relative w-full h-full rounded-xl overflow-hidden border border-gray-200">

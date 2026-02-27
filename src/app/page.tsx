@@ -34,6 +34,7 @@ export default function Home() {
   const [sundayOnly, setSundayOnly] = useState(false);
   const [holidayOnly, setHolidayOnly] = useState(false);
   const [nearbyLoading, setNearbyLoading] = useState(false);
+  const [focusUser, setFocusUser] = useState(false);
 
   // GPS 위치 가져오기
   useEffect(() => {
@@ -105,6 +106,7 @@ export default function Home() {
 
     setLoading(true);
     setSelectedId(undefined);
+    setFocusUser(false);
 
     try {
       const params = new URLSearchParams();
@@ -143,6 +145,7 @@ export default function Home() {
     setNearbyLoading(true);
     setLoading(true);
     setSelectedId(undefined);
+    setFocusUser(true);
 
     try {
       const geocoder = new kakao.maps.services.Geocoder();
@@ -264,6 +267,7 @@ export default function Home() {
               userLat={userLat}
               userLng={userLng}
               selectedId={selectedId}
+              focusUser={focusUser}
               onMarkerClick={handleMarkerClick}
             />
           </div>
