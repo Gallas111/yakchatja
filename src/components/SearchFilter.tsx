@@ -51,7 +51,10 @@ export default function SearchFilter({
           type="text"
           value={sigungu}
           onChange={(e) => onSigunguChange(e.target.value)}
-          placeholder="시/군/구 입력"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && sido) onSearch();
+          }}
+          placeholder="군/구 입력"
           className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
         />
       </div>
