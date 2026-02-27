@@ -11,6 +11,7 @@ import {
   isOpenNow,
   isNightPharmacy,
   isSundayOpen,
+  isHolidayOpen,
   calculateDistance,
 } from '@/lib/utils';
 
@@ -29,6 +30,7 @@ export default function Home() {
   const [onlyOpen, setOnlyOpen] = useState(true);
   const [nightOnly, setNightOnly] = useState(false);
   const [sundayOnly, setSundayOnly] = useState(false);
+  const [holidayOnly, setHolidayOnly] = useState(false);
 
   // GPS 위치 가져오기
   useEffect(() => {
@@ -60,6 +62,9 @@ export default function Home() {
       if (sundayOnly) {
         result = result.filter((p) => isSundayOpen(p));
       }
+      if (holidayOnly) {
+        result = result.filter((p) => isHolidayOpen(p));
+      }
 
       // 거리 계산 및 정렬
       if (userLat && userLng) {
@@ -82,7 +87,7 @@ export default function Home() {
 
       setFilteredPharmacies(result);
     },
-    [onlyOpen, nightOnly, sundayOnly, userLat, userLng]
+    [onlyOpen, nightOnly, sundayOnly, holidayOnly, userLat, userLng]
   );
 
   // 검색 실행
@@ -117,7 +122,7 @@ export default function Home() {
     if (pharmacies.length > 0) {
       applyFilters(pharmacies);
     }
-  }, [onlyOpen, nightOnly, sundayOnly, pharmacies, applyFilters]);
+  }, [onlyOpen, nightOnly, sundayOnly, holidayOnly, pharmacies, applyFilters]);
 
   const handleMarkerClick = useCallback((pharmacy: PharmacyRaw) => {
     setSelectedId(pharmacy.dutyName);
@@ -139,11 +144,13 @@ export default function Home() {
           onlyOpen={onlyOpen}
           nightOnly={nightOnly}
           sundayOnly={sundayOnly}
+          holidayOnly={holidayOnly}
           onSidoChange={setSido}
           onSigunguChange={setSigungu}
           onOnlyOpenChange={setOnlyOpen}
           onNightOnlyChange={setNightOnly}
           onSundayOnlyChange={setSundayOnly}
+          onHolidayOnlyChange={setHolidayOnly}
           onSearch={handleSearch}
           loading={loading}
         />

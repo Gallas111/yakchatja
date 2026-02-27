@@ -8,11 +8,13 @@ interface Props {
   onlyOpen: boolean;
   nightOnly: boolean;
   sundayOnly: boolean;
+  holidayOnly: boolean;
   onSidoChange: (v: string) => void;
   onSigunguChange: (v: string) => void;
   onOnlyOpenChange: (v: boolean) => void;
   onNightOnlyChange: (v: boolean) => void;
   onSundayOnlyChange: (v: boolean) => void;
+  onHolidayOnlyChange: (v: boolean) => void;
   onSearch: () => void;
   loading: boolean;
 }
@@ -23,11 +25,13 @@ export default function SearchFilter({
   onlyOpen,
   nightOnly,
   sundayOnly,
+  holidayOnly,
   onSidoChange,
   onSigunguChange,
   onOnlyOpenChange,
   onNightOnlyChange,
   onSundayOnlyChange,
+  onHolidayOnlyChange,
   onSearch,
   loading,
 }: Props) {
@@ -77,6 +81,12 @@ export default function SearchFilter({
           active={sundayOnly}
           onChange={onSundayOnlyChange}
           emoji="📅"
+        />
+        <FilterToggle
+          label="공휴일 영업"
+          active={holidayOnly}
+          onChange={onHolidayOnlyChange}
+          emoji="🎌"
         />
       </div>
 
