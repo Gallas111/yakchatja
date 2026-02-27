@@ -9,7 +9,7 @@ const geistSans = Geist({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://yakchatja.com'),
+  metadataBase: new URL('https://www.yakchatja.com'),
   title: {
     default: '약찾자 - 내 주변 영업중인 약국 찾기',
     template: '%s | 약찾자',
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: '약찾자 - 내 주변 영업중인 약국 찾기',
     description: '주말, 야간, 공휴일에도 영업중인 약국을 실시간으로 찾아보세요.',
-    url: 'https://yakchatja.com',
+    url: 'https://www.yakchatja.com',
     siteName: '약찾자',
     type: 'website',
     locale: 'ko_KR',
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
     description: '주말, 야간, 공휴일에도 영업중인 약국을 실시간으로 찾아보세요.',
   },
   alternates: {
-    canonical: 'https://yakchatja.com',
+    canonical: 'https://www.yakchatja.com',
   },
   verification: {
     google: 'mA_EviIDJwhSLzqYsZqqlAL-N36joA8VkaA-cHBM-sA',
