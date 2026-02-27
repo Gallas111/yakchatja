@@ -63,10 +63,24 @@ export default function SearchFilter({
   const [addressQuery, setAddressQuery] = useState('');
   const [addressResults, setAddressResults] = useState<AddressResult[]>([]);
   const [showResults, setShowResults] = useState(false);
+  const [copied, setCopied] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const resultsRef = useRef<HTMLDivElement>(null);
 
   const sigunguList = sido ? (SIGUNGU_MAP[sido] || []) : [];
+
+  const handleShare = async () => {
+    const url = window.location.href;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: `${sigungu || sido} 약국 찾기 | 약국찾자`, url });
+      } catch { /* 취소 무시 */ }
+    } else {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
 
   // 카카오 Geocoder로 주소 검색
   const searchAddress = useCallback((query: string) => {
@@ -275,6 +289,20 @@ export default function SearchFilter({
       >
         {loading ? '검색중...' : '약국 검색'}
       </button>
+
+      {/* 공유 버튼 */}
+      {sido && (
+        <button
+          onClick={handleShare}
+          className="w-full py-2 text-sm font-medium text-gray-500 hover:text-green-600 transition-colors flex items-center justify-center gap-1.5"
+        >
+          {copied ? (
+            <><span>✅</span> URL 복사됨!</>
+          ) : (
+            <><span>🔗</span> 현재 검색 결과 공유하기</>
+          )}
+        </button>
+      )}
 
       {/* 지역별 정적 페이지 링크 */}
       {sido && sigungu && (

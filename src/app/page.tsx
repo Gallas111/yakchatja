@@ -39,6 +39,68 @@ export default function Home() {
   const [focusUser, setFocusUser] = useState(false);
   const { favorites, isFavorite, toggleFavorite } = useFavorites();
 
+  // URL 파라미터로 초기화 (공유 링크 진입 시 자동 검색)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const sidoParam = params.get('sido') || '';
+    if (!sidoParam) return;
+
+    const sigunguParam = params.get('sigungu') || '';
+    const dongParam = params.get('dong') || '';
+    const openParam = params.get('open') !== '0'; // 기본값 true, '0'일 때만 false
+    const nightParam = params.get('night') === '1';
+    const sunParam = params.get('sun') === '1';
+    const holParam = params.get('hol') === '1';
+
+    setSido(sidoParam);
+    setSigungu(sigunguParam);
+    setDong(dongParam);
+    setOnlyOpen(openParam);
+    setNightOnly(nightParam);
+    setSundayOnly(sunParam);
+    setHolidayOnly(holParam);
+    setLoading(true);
+
+    const apiParams = new URLSearchParams();
+    apiParams.set('Q0', sidoParam);
+    if (sigunguParam) apiParams.set('Q1', sigunguParam);
+    apiParams.set('numOfRows', '200');
+
+    fetch(`/api/pharmacies?${apiParams}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.pharmacies) {
+          setPharmacies(data.pharmacies);
+          let result = [...data.pharmacies];
+          if (dongParam.trim()) result = result.filter((p) => p.dutyAddr?.includes(dongParam.trim()));
+          if (openParam) result = result.filter((p) => isOpenNow(getTodayHours(p)));
+          if (nightParam) result = result.filter((p) => isNightPharmacy(p));
+          if (sunParam) result = result.filter((p) => isSundayOpen(p));
+          if (holParam) result = result.filter((p) => isHolidayOpen(p));
+          setFilteredPharmacies(result);
+        }
+      })
+      .catch((err) => console.error('URL 초기화 검색 실패:', err))
+      .finally(() => setLoading(false));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 필터 변경 시 URL 자동 업데이트 (히스토리 쌓지 않음)
+  useEffect(() => {
+    if (!sido) {
+      if (window.location.search) window.history.replaceState(null, '', '/');
+      return;
+    }
+    const params = new URLSearchParams();
+    params.set('sido', sido);
+    if (sigungu) params.set('sigungu', sigungu);
+    if (dong) params.set('dong', dong);
+    if (!onlyOpen) params.set('open', '0');
+    if (nightOnly) params.set('night', '1');
+    if (sundayOnly) params.set('sun', '1');
+    if (holidayOnly) params.set('hol', '1');
+    window.history.replaceState(null, '', `/?${params.toString()}`);
+  }, [sido, sigungu, dong, onlyOpen, nightOnly, sundayOnly, holidayOnly]);
+
   // GPS 위치 가져오기
   useEffect(() => {
     if (!navigator.geolocation) return;
