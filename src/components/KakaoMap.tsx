@@ -66,7 +66,7 @@ export default function KakaoMap({ pharmacies, userLat, userLng, selectedId, onM
     }
 
     const script = document.createElement('script');
-    script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${kakaoKey}&autoload=false`;
+    script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${kakaoKey}&libraries=services&autoload=false`;
     script.async = true;
     script.onerror = (e) => {
       console.error('카카오맵 SDK 로드 실패:', e);

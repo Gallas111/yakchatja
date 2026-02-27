@@ -13,6 +13,7 @@ import {
   isSundayOpen,
   isHolidayOpen,
   calculateDistance,
+  SIDO_LIST,
 } from '@/lib/utils';
 
 export default function Home() {
@@ -32,6 +33,7 @@ export default function Home() {
   const [nightOnly, setNightOnly] = useState(false);
   const [sundayOnly, setSundayOnly] = useState(false);
   const [holidayOnly, setHolidayOnly] = useState(false);
+  const [nearbyLoading, setNearbyLoading] = useState(false);
 
   // GPS 위치 가져오기
   useEffect(() => {
@@ -124,6 +126,78 @@ export default function Home() {
     }
   }, [sido, sigungu, applyFilters]);
 
+  // 내 주변 약국 찾기 (역지오코딩)
+  const handleNearbySearch = useCallback(async () => {
+    if (!userLat || !userLng) {
+      alert('위치 정보를 가져올 수 없습니다. 브라우저에서 위치 접근을 허용해주세요.');
+      return;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const kakao = (window as any).kakao;
+    if (!kakao?.maps?.services) {
+      alert('지도 서비스가 아직 로드되지 않았습니다. 잠시 후 다시 시도해주세요.');
+      return;
+    }
+
+    setNearbyLoading(true);
+    setLoading(true);
+    setSelectedId(undefined);
+
+    try {
+      const geocoder = new kakao.maps.services.Geocoder();
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const region = await new Promise<any>((resolve, reject) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        geocoder.coord2RegionCode(userLng, userLat, (result: any[], status: string) => {
+          if (status === kakao.maps.services.Status.OK && result.length > 0) {
+            // region_type 'H' (행정동) 우선, 없으면 첫 번째
+            const adminRegion = result.find((r: { region_type: string }) => r.region_type === 'H') || result[0];
+            resolve(adminRegion);
+          } else {
+            reject(new Error('위치를 주소로 변환할 수 없습니다.'));
+          }
+        });
+      });
+
+      const newSido = region.region_1depth_name;
+      const newSigungu = region.region_2depth_name;
+
+      // SIDO_LIST에 매칭되는지 확인 (부분 일치 포함)
+      const matchedSido = SIDO_LIST.find(s => s === newSido) ||
+        SIDO_LIST.find(s => newSido.includes(s.replace(/특별자치|광역|특별/, '').slice(0, 2)));
+
+      if (!matchedSido) {
+        alert(`지원하지 않는 지역입니다: ${newSido}`);
+        return;
+      }
+
+      setSido(matchedSido);
+      setSigungu(newSigungu || '');
+
+      // 상태 변경을 기다리지 않고 직접 API 호출
+      const params = new URLSearchParams();
+      params.set('Q0', matchedSido);
+      if (newSigungu) params.set('Q1', newSigungu);
+      params.set('numOfRows', '200');
+
+      const res = await fetch(`/api/pharmacies?${params}`);
+      const data = await res.json();
+
+      if (data.pharmacies) {
+        setPharmacies(data.pharmacies);
+        applyFilters(data.pharmacies);
+      }
+    } catch (err) {
+      console.error('내 주변 약국 검색 실패:', err);
+      alert('내 주변 약국 검색에 실패했습니다. 다시 시도해주세요.');
+    } finally {
+      setNearbyLoading(false);
+      setLoading(false);
+    }
+  }, [userLat, userLng, applyFilters]);
+
   // 필터 변경 시 재적용
   useEffect(() => {
     if (pharmacies.length > 0) {
@@ -144,6 +218,24 @@ export default function Home() {
       <Header />
 
       <main className="max-w-5xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
+        {/* 내 주변 약국 찾기 버튼 */}
+        <button
+          onClick={handleNearbySearch}
+          disabled={nearbyLoading || loading}
+          className="w-full mb-3 py-3 sm:py-3.5 rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 text-white font-semibold text-sm sm:text-base hover:from-green-600 hover:to-emerald-600 active:from-green-700 active:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center justify-center gap-2"
+        >
+          {nearbyLoading ? (
+            <>
+              <span className="animate-spin">⏳</span> 위치 확인 중...
+            </>
+          ) : (
+            <>
+              📍 내 주변 약국 찾기
+              {!userLat && <span className="text-xs opacity-75">(위치 허용 필요)</span>}
+            </>
+          )}
+        </button>
+
         {/* 검색/필터 */}
         <SearchFilter
           sido={sido}
