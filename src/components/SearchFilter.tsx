@@ -5,12 +5,14 @@ import { SIDO_LIST } from '@/lib/utils';
 interface Props {
   sido: string;
   sigungu: string;
+  dong: string;
   onlyOpen: boolean;
   nightOnly: boolean;
   sundayOnly: boolean;
   holidayOnly: boolean;
   onSidoChange: (v: string) => void;
   onSigunguChange: (v: string) => void;
+  onDongChange: (v: string) => void;
   onOnlyOpenChange: (v: boolean) => void;
   onNightOnlyChange: (v: boolean) => void;
   onSundayOnlyChange: (v: boolean) => void;
@@ -22,12 +24,14 @@ interface Props {
 export default function SearchFilter({
   sido,
   sigungu,
+  dong,
   onlyOpen,
   nightOnly,
   sundayOnly,
   holidayOnly,
   onSidoChange,
   onSigunguChange,
+  onDongChange,
   onOnlyOpenChange,
   onNightOnlyChange,
   onSundayOnlyChange,
@@ -59,6 +63,16 @@ export default function SearchFilter({
             if (e.key === 'Enter' && sido) onSearch();
           }}
           placeholder="군/구 입력"
+          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+        />
+        <input
+          type="text"
+          value={dong}
+          onChange={(e) => onDongChange(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && sido) onSearch();
+          }}
+          placeholder="읍/면/동 (선택)"
           className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
         />
       </div>

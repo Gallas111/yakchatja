@@ -27,6 +27,7 @@ export default function Home() {
   // 필터 상태
   const [sido, setSido] = useState('');
   const [sigungu, setSigungu] = useState('');
+  const [dong, setDong] = useState('');
   const [onlyOpen, setOnlyOpen] = useState(true);
   const [nightOnly, setNightOnly] = useState(false);
   const [sundayOnly, setSundayOnly] = useState(false);
@@ -52,6 +53,12 @@ export default function Home() {
   const applyFilters = useCallback(
     (data: PharmacyRaw[]) => {
       let result = data;
+
+      if (dong.trim()) {
+        result = result.filter((p) =>
+          p.dutyAddr?.includes(dong.trim())
+        );
+      }
 
       if (onlyOpen) {
         result = result.filter((p) => isOpenNow(getTodayHours(p)));
@@ -87,7 +94,7 @@ export default function Home() {
 
       setFilteredPharmacies(result);
     },
-    [onlyOpen, nightOnly, sundayOnly, holidayOnly, userLat, userLng]
+    [dong, onlyOpen, nightOnly, sundayOnly, holidayOnly, userLat, userLng]
   );
 
   // 검색 실행
@@ -122,7 +129,7 @@ export default function Home() {
     if (pharmacies.length > 0) {
       applyFilters(pharmacies);
     }
-  }, [onlyOpen, nightOnly, sundayOnly, holidayOnly, pharmacies, applyFilters]);
+  }, [dong, onlyOpen, nightOnly, sundayOnly, holidayOnly, pharmacies, applyFilters]);
 
   const handleMarkerClick = useCallback((pharmacy: PharmacyRaw) => {
     setSelectedId(pharmacy.dutyName);
@@ -141,12 +148,14 @@ export default function Home() {
         <SearchFilter
           sido={sido}
           sigungu={sigungu}
+          dong={dong}
           onlyOpen={onlyOpen}
           nightOnly={nightOnly}
           sundayOnly={sundayOnly}
           holidayOnly={holidayOnly}
           onSidoChange={setSido}
           onSigunguChange={setSigungu}
+          onDongChange={setDong}
           onOnlyOpenChange={setOnlyOpen}
           onNightOnlyChange={setNightOnly}
           onSundayOnlyChange={setSundayOnly}
