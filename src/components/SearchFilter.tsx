@@ -90,6 +90,7 @@ export default function SearchFilter({
         />
         <FilterToggle
           label="야간약국"
+          hint="(22시 이후 마감)"
           active={nightOnly}
           onChange={onNightOnlyChange}
           emoji="🌙"
@@ -121,11 +122,13 @@ export default function SearchFilter({
 
 function FilterToggle({
   label,
+  hint,
   active,
   onChange,
   emoji,
 }: {
   label: string;
+  hint?: string;
   active: boolean;
   onChange: (v: boolean) => void;
   emoji: string;
@@ -140,6 +143,9 @@ function FilterToggle({
       }`}
     >
       {emoji} {label}
+      {hint && (
+        <span className="block text-[10px] font-normal opacity-60 leading-tight">{hint}</span>
+      )}
     </button>
   );
 }
