@@ -143,7 +143,7 @@ export default function Home() {
     <div className="min-h-screen bg-gray-50">
       <Header />
 
-      <main className="max-w-5xl mx-auto px-4 py-4">
+      <main className="max-w-5xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
         {/* 검색/필터 */}
         <SearchFilter
           sido={sido}
@@ -165,8 +165,8 @@ export default function Home() {
         />
 
         {/* 지도 + 리스트 */}
-        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="h-[400px] md:h-[600px] md:sticky md:top-20">
+        <div className="mt-3 sm:mt-4 grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+          <div className="h-[300px] sm:h-[400px] md:h-[600px] md:sticky md:top-20">
             <KakaoMap
               pharmacies={filteredPharmacies}
               userLat={userLat}
@@ -188,7 +188,7 @@ export default function Home() {
         </div>
 
         {/* SEO 텍스트 */}
-        <section className="mt-12 mb-8 text-center text-gray-400 text-xs space-y-1">
+        <section className="mt-8 sm:mt-12 mb-6 sm:mb-8 text-center text-gray-400 text-[11px] sm:text-xs space-y-1">
           <p>약찾자 - 내 주변 영업중인 약국을 실시간으로 찾아보세요</p>
           <p>야간약국 | 일요일약국 | 공휴일약국 | 주말약국 | 심야약국</p>
         </section>

@@ -34,7 +34,7 @@ export default function PharmacyCard({ pharmacy, distance, isSelected, onClick }
   return (
     <div
       onClick={onClick}
-      className={`p-4 rounded-xl border cursor-pointer transition-all ${
+      className={`p-3 sm:p-4 rounded-xl border cursor-pointer transition-all ${
         isSelected
           ? 'border-green-500 bg-green-50 shadow-md'
           : 'border-gray-200 bg-white hover:border-green-300 hover:shadow-sm'
@@ -43,7 +43,7 @@ export default function PharmacyCard({ pharmacy, distance, isSelected, onClick }
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <h3 className="font-semibold text-gray-900 truncate">{pharmacy.dutyName}</h3>
+            <h3 className="font-semibold text-gray-900 text-base sm:text-sm truncate">{pharmacy.dutyName}</h3>
             <span
               className={`shrink-0 px-2 py-0.5 rounded-full text-xs font-medium ${
                 open
@@ -55,9 +55,9 @@ export default function PharmacyCard({ pharmacy, distance, isSelected, onClick }
             </span>
           </div>
 
-          <p className="text-sm text-gray-500 truncate">{pharmacy.dutyAddr}</p>
+          <p className="text-sm text-gray-500 line-clamp-2 sm:truncate">{pharmacy.dutyAddr}</p>
 
-          <div className="flex items-center gap-3 mt-2 text-sm text-gray-600">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-sm text-gray-600">
             {todayHours && (
               <span>
                 🕐 {formatTime(todayHours.open)} ~ {formatTime(todayHours.close)}
@@ -77,14 +77,14 @@ export default function PharmacyCard({ pharmacy, distance, isSelected, onClick }
         {pharmacy.dutyTel1 && (
           <button
             onClick={handleCall}
-            className="flex-1 flex items-center justify-center gap-1 py-2 px-3 rounded-lg bg-blue-50 text-blue-600 text-sm font-medium hover:bg-blue-100 transition-colors"
+            className="flex-1 flex items-center justify-center gap-1 py-2.5 px-3 rounded-lg bg-blue-50 text-blue-600 text-sm font-medium hover:bg-blue-100 active:bg-blue-200 transition-colors"
           >
             📞 전화
           </button>
         )}
         <button
           onClick={handleDirection}
-          className="flex-1 flex items-center justify-center gap-1 py-2 px-3 rounded-lg bg-green-50 text-green-600 text-sm font-medium hover:bg-green-100 transition-colors"
+          className="flex-1 flex items-center justify-center gap-1 py-2.5 px-3 rounded-lg bg-green-50 text-green-600 text-sm font-medium hover:bg-green-100 active:bg-green-200 transition-colors"
         >
           🗺️ 길찾기
         </button>
