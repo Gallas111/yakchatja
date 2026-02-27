@@ -361,7 +361,7 @@ export default function Home() {
 
         {/* SEO 텍스트 */}
         <section className="mt-8 sm:mt-12 mb-6 sm:mb-8 text-center text-gray-400 text-[11px] sm:text-xs space-y-1">
-          <p>약찾자 - 내 주변 영업중인 약국을 실시간으로 찾아보세요</p>
+          <p>약국찾자 - 내 주변 영업중인 약국을 실시간으로 찾아보세요</p>
           <p>야간약국 | 일요일약국 | 공휴일약국 | 주말약국 | 심야약국</p>
         </section>
       </main>

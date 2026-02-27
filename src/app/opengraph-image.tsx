@@ -1,6 +1,6 @@
 import { ImageResponse } from 'next/og';
 
-export const alt = '약찾자 - 내 주변 영업중인 약국 찾기';
+export const alt = '약국찾자 - 내 주변 영업중인 약국 찾기';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
@@ -48,7 +48,7 @@ export default function OgImage() {
               color: '#16a34a',
             }}
           >
-            약찾자
+            약국찾자
           </span>
         </div>
         <div

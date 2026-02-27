@@ -8,7 +8,7 @@ export default function Header() {
       <div className="max-w-5xl mx-auto px-4 py-2.5 sm:py-3 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-1.5 sm:gap-2">
           <span className="text-xl sm:text-2xl">💊</span>
-          <h1 className="text-lg sm:text-xl font-bold text-green-600">약찾자</h1>
+          <h1 className="text-lg sm:text-xl font-bold text-green-600">약국찾자</h1>
         </Link>
         <p className="text-xs sm:text-sm text-gray-500">
           내 주변 약국 찾기
