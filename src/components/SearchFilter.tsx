@@ -28,6 +28,7 @@ interface Props {
   onHolidayOnlyChange: (v: boolean) => void;
   onSearch: () => void;
   onAddressSelect: (sido: string, sigungu: string, dong?: string) => void;
+  dongList: string[];
   loading: boolean;
 }
 
@@ -48,6 +49,7 @@ export default function SearchFilter({
   onHolidayOnlyChange,
   onSearch,
   onAddressSelect,
+  dongList,
   loading,
 }: Props) {
   const [addressQuery, setAddressQuery] = useState('');
@@ -196,16 +198,19 @@ export default function SearchFilter({
             <option key={s} value={s}>{s}</option>
           ))}
         </select>
-        <input
-          type="text"
+        <select
           value={dong}
           onChange={(e) => onDongChange(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && sido) onSearch();
-          }}
-          placeholder="읍/면/동 (선택)"
-          className="flex-1 min-w-0 px-3 py-2.5 border border-gray-300 rounded-lg text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-        />
+          disabled={dongList.length === 0}
+          className="flex-1 min-w-0 px-3 py-2.5 border border-gray-300 rounded-lg text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:text-gray-400"
+        >
+          <option value="">
+            {dongList.length === 0 ? '읍/면/동 (검색 후 선택)' : '전체'}
+          </option>
+          {dongList.map((d) => (
+            <option key={d} value={d}>{d}</option>
+          ))}
+        </select>
       </div>
 
       {/* 필터 토글 - 모바일 2x2 그리드 */}
