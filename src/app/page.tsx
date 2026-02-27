@@ -201,6 +201,47 @@ export default function Home() {
     }
   }, [userLat, userLng, applyFilters]);
 
+  // 주소 검색 결과 선택
+  const handleAddressSelect = useCallback(async (
+    newSido: string,
+    newSigungu: string,
+    newDong?: string,
+  ) => {
+    const matchedSido = SIDO_LIST.find(s => s === newSido) ||
+      SIDO_LIST.find(s => newSido.includes(s.replace(/특별자치|광역|특별/, '').slice(0, 2)));
+
+    if (!matchedSido) {
+      alert(`지원하지 않는 지역입니다: ${newSido}`);
+      return;
+    }
+
+    setSido(matchedSido);
+    setSigungu(newSigungu || '');
+    if (newDong) setDong(newDong);
+    setFocusUser(false);
+    setLoading(true);
+    setSelectedId(undefined);
+
+    try {
+      const params = new URLSearchParams();
+      params.set('Q0', matchedSido);
+      if (newSigungu) params.set('Q1', newSigungu);
+      params.set('numOfRows', '200');
+
+      const res = await fetch(`/api/pharmacies?${params}`);
+      const data = await res.json();
+
+      if (data.pharmacies) {
+        setPharmacies(data.pharmacies);
+        applyFilters(data.pharmacies);
+      }
+    } catch (err) {
+      console.error('주소 검색 실패:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [applyFilters]);
+
   // 필터 변경 시 재적용
   useEffect(() => {
     if (pharmacies.length > 0) {
@@ -256,6 +297,7 @@ export default function Home() {
           onSundayOnlyChange={setSundayOnly}
           onHolidayOnlyChange={setHolidayOnly}
           onSearch={handleSearch}
+          onAddressSelect={handleAddressSelect}
           loading={loading}
         />
 

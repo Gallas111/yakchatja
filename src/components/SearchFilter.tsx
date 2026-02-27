@@ -1,6 +1,15 @@
 'use client';
 
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { SIDO_LIST } from '@/lib/utils';
+import { SIGUNGU_MAP } from '@/lib/regions';
+
+interface AddressResult {
+  sido: string;
+  sigungu: string;
+  dong: string;
+  display: string;
+}
 
 interface Props {
   sido: string;
@@ -18,6 +27,7 @@ interface Props {
   onSundayOnlyChange: (v: boolean) => void;
   onHolidayOnlyChange: (v: boolean) => void;
   onSearch: () => void;
+  onAddressSelect: (sido: string, sigungu: string, dong?: string) => void;
   loading: boolean;
 }
 
@@ -37,16 +47,131 @@ export default function SearchFilter({
   onSundayOnlyChange,
   onHolidayOnlyChange,
   onSearch,
+  onAddressSelect,
   loading,
 }: Props) {
+  const [addressQuery, setAddressQuery] = useState('');
+  const [addressResults, setAddressResults] = useState<AddressResult[]>([]);
+  const [showResults, setShowResults] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const resultsRef = useRef<HTMLDivElement>(null);
+
+  const sigunguList = sido ? (SIGUNGU_MAP[sido] || []) : [];
+
+  // 주소 검색 (카카오 Geocoder, 디바운스)
+  const handleAddressInput = useCallback((value: string) => {
+    setAddressQuery(value);
+
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    if (!value.trim()) {
+      setAddressResults([]);
+      setShowResults(false);
+      return;
+    }
+
+    debounceRef.current = setTimeout(() => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const kakao = (window as any).kakao;
+      if (!kakao?.maps?.services) return;
+
+      const geocoder = new kakao.maps.services.Geocoder();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      geocoder.addressSearch(value, (result: any[], status: string) => {
+        if (status === kakao.maps.services.Status.OK && result.length > 0) {
+          // 지역 단위로 중복 제거
+          const seen = new Set<string>();
+          const regions: AddressResult[] = [];
+
+          for (const r of result) {
+            const addr = r.address;
+            if (!addr) continue;
+            const key = `${addr.region_1depth_name}|${addr.region_2depth_name}|${addr.region_3depth_name}`;
+            if (seen.has(key)) continue;
+            seen.add(key);
+            regions.push({
+              sido: addr.region_1depth_name,
+              sigungu: addr.region_2depth_name,
+              dong: addr.region_3depth_name,
+              display: [addr.region_1depth_name, addr.region_2depth_name, addr.region_3depth_name]
+                .filter(Boolean)
+                .join(' '),
+            });
+            if (regions.length >= 5) break;
+          }
+
+          setAddressResults(regions);
+          setShowResults(regions.length > 0);
+        } else {
+          setAddressResults([]);
+          setShowResults(false);
+        }
+      });
+    }, 300);
+  }, []);
+
+  // 주소 결과 클릭
+  const handleResultClick = (result: AddressResult) => {
+    onAddressSelect(result.sido, result.sigungu, result.dong);
+    setAddressQuery('');
+    setAddressResults([]);
+    setShowResults(false);
+  };
+
+  // 외부 클릭 시 결과 닫기
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (resultsRef.current && !resultsRef.current.contains(e.target as Node)) {
+        setShowResults(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4 space-y-3">
+      {/* 주소 검색 */}
+      <div className="relative" ref={resultsRef}>
+        <div className="relative">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔍</span>
+          <input
+            type="text"
+            value={addressQuery}
+            onChange={(e) => handleAddressInput(e.target.value)}
+            placeholder="주소 검색 (예: 강남구 역삼동, 해운대구)"
+            className="w-full pl-9 pr-3 py-2.5 border border-gray-300 rounded-lg text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+          />
+        </div>
+        {showResults && addressResults.length > 0 && (
+          <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto">
+            {addressResults.map((result, i) => (
+              <button
+                key={i}
+                onClick={() => handleResultClick(result)}
+                className="w-full text-left px-3 py-2.5 text-sm hover:bg-green-50 active:bg-green-100 transition-colors border-b border-gray-100 last:border-0"
+              >
+                <span className="text-gray-900">{result.display}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* 구분선 */}
+      <div className="flex items-center gap-2">
+        <div className="flex-1 h-px bg-gray-200" />
+        <span className="text-xs text-gray-400">또는 직접 선택</span>
+        <div className="flex-1 h-px bg-gray-200" />
+      </div>
+
       {/* 시/도 선택 */}
       <select
         value={sido}
         onChange={(e) => {
           onSidoChange(e.target.value);
           onSigunguChange('');
+          onDongChange('');
         }}
         className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
       >
@@ -56,18 +181,21 @@ export default function SearchFilter({
         ))}
       </select>
 
-      {/* 군/구 + 읍면동 */}
+      {/* 시/군/구 + 읍/면/동 */}
       <div className="flex gap-2">
-        <input
-          type="text"
+        <select
           value={sigungu}
           onChange={(e) => onSigunguChange(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && sido) onSearch();
-          }}
-          placeholder="군/구 입력"
-          className="flex-1 min-w-0 px-3 py-2.5 border border-gray-300 rounded-lg text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-        />
+          disabled={!sido || sigunguList.length === 0}
+          className="flex-1 min-w-0 px-3 py-2.5 border border-gray-300 rounded-lg text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:text-gray-400"
+        >
+          <option value="">
+            {!sido ? '시/도를 먼저 선택' : sigunguList.length === 0 ? '전체' : '시/군/구 선택'}
+          </option>
+          {sigunguList.map((s) => (
+            <option key={s} value={s}>{s}</option>
+          ))}
+        </select>
         <input
           type="text"
           value={dong}
