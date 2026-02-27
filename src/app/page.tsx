@@ -1,103 +1,182 @@
-import Image from "next/image";
+'use client';
+
+import { useState, useCallback, useEffect } from 'react';
+import Header from '@/components/Header';
+import KakaoMap from '@/components/KakaoMap';
+import PharmacyList from '@/components/PharmacyList';
+import SearchFilter from '@/components/SearchFilter';
+import { PharmacyRaw } from '@/lib/pharmacy-api';
+import {
+  getTodayHours,
+  isOpenNow,
+  isNightPharmacy,
+  isSundayOpen,
+  calculateDistance,
+} from '@/lib/utils';
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [pharmacies, setPharmacies] = useState<PharmacyRaw[]>([]);
+  const [filteredPharmacies, setFilteredPharmacies] = useState<PharmacyRaw[]>([]);
+  const [distances, setDistances] = useState<Map<string, number>>(new Map());
+  const [loading, setLoading] = useState(false);
+  const [selectedId, setSelectedId] = useState<string>();
+  const [userLat, setUserLat] = useState<number>();
+  const [userLng, setUserLng] = useState<number>();
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+  // 필터 상태
+  const [sido, setSido] = useState('');
+  const [sigungu, setSigungu] = useState('');
+  const [onlyOpen, setOnlyOpen] = useState(true);
+  const [nightOnly, setNightOnly] = useState(false);
+  const [sundayOnly, setSundayOnly] = useState(false);
+
+  // GPS 위치 가져오기
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setUserLat(pos.coords.latitude);
+        setUserLng(pos.coords.longitude);
+      },
+      (err) => {
+        console.warn('위치 정보를 가져올 수 없습니다:', err.message);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }, []);
+
+  // 필터 적용
+  const applyFilters = useCallback(
+    (data: PharmacyRaw[]) => {
+      let result = data;
+
+      if (onlyOpen) {
+        result = result.filter((p) => isOpenNow(getTodayHours(p)));
+      }
+      if (nightOnly) {
+        result = result.filter((p) => isNightPharmacy(p));
+      }
+      if (sundayOnly) {
+        result = result.filter((p) => isSundayOpen(p));
+      }
+
+      // 거리 계산 및 정렬
+      if (userLat && userLng) {
+        const distMap = new Map<string, number>();
+        result.forEach((p) => {
+          const lat = parseFloat(p.wgs84Lat);
+          const lng = parseFloat(p.wgs84Lon);
+          if (!isNaN(lat) && !isNaN(lng)) {
+            distMap.set(p.dutyName, calculateDistance(userLat, userLng, lat, lng));
+          }
+        });
+        setDistances(distMap);
+
+        result.sort((a, b) => {
+          const da = distMap.get(a.dutyName) ?? Infinity;
+          const db = distMap.get(b.dutyName) ?? Infinity;
+          return da - db;
+        });
+      }
+
+      setFilteredPharmacies(result);
+    },
+    [onlyOpen, nightOnly, sundayOnly, userLat, userLng]
+  );
+
+  // 검색 실행
+  const handleSearch = useCallback(async () => {
+    if (!sido) return;
+
+    setLoading(true);
+    setSelectedId(undefined);
+
+    try {
+      const params = new URLSearchParams();
+      params.set('Q0', sido);
+      if (sigungu) params.set('Q1', sigungu);
+      params.set('numOfRows', '200');
+
+      const res = await fetch(`/api/pharmacies?${params}`);
+      const data = await res.json();
+
+      if (data.pharmacies) {
+        setPharmacies(data.pharmacies);
+        applyFilters(data.pharmacies);
+      }
+    } catch (err) {
+      console.error('검색 실패:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [sido, sigungu, applyFilters]);
+
+  // 필터 변경 시 재적용
+  useEffect(() => {
+    if (pharmacies.length > 0) {
+      applyFilters(pharmacies);
+    }
+  }, [onlyOpen, nightOnly, sundayOnly, pharmacies, applyFilters]);
+
+  const handleMarkerClick = useCallback((pharmacy: PharmacyRaw) => {
+    setSelectedId(pharmacy.dutyName);
+    const el = document.getElementById('pharmacy-list');
+    if (el && window.innerWidth < 768) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+
+      <main className="max-w-5xl mx-auto px-4 py-4">
+        {/* 검색/필터 */}
+        <SearchFilter
+          sido={sido}
+          sigungu={sigungu}
+          onlyOpen={onlyOpen}
+          nightOnly={nightOnly}
+          sundayOnly={sundayOnly}
+          onSidoChange={setSido}
+          onSigunguChange={setSigungu}
+          onOnlyOpenChange={setOnlyOpen}
+          onNightOnlyChange={setNightOnly}
+          onSundayOnlyChange={setSundayOnly}
+          onSearch={handleSearch}
+          loading={loading}
+        />
+
+        {/* 지도 + 리스트 */}
+        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="h-[400px] md:h-[600px] md:sticky md:top-20">
+            <KakaoMap
+              pharmacies={filteredPharmacies}
+              userLat={userLat}
+              userLng={userLng}
+              selectedId={selectedId}
+              onMarkerClick={handleMarkerClick}
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+          </div>
+
+          <div id="pharmacy-list">
+            <PharmacyList
+              pharmacies={filteredPharmacies}
+              distances={distances}
+              selectedId={selectedId}
+              onSelect={(p) => setSelectedId(p.dutyName)}
+              loading={loading}
+            />
+          </div>
         </div>
+
+        {/* SEO 텍스트 */}
+        <section className="mt-12 mb-8 text-center text-gray-400 text-xs space-y-1">
+          <p>약찾자 - 내 주변 영업중인 약국을 실시간으로 찾아보세요</p>
+          <p>야간약국 | 일요일약국 | 공휴일약국 | 주말약국 | 심야약국</p>
+        </section>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
     </div>
   );
 }
