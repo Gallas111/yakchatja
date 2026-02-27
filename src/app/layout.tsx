@@ -44,6 +44,9 @@ export const metadata: Metadata = {
   alternates: {
     canonical: 'https://yakchatja.com',
   },
+  verification: {
+    google: 'mA_EviIDJwhSLzqYsZqqlAL-N36joA8VkaA-cHBM-sA',
+  },
   robots: {
     index: true,
     follow: true,
