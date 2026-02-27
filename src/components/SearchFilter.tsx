@@ -60,7 +60,46 @@ export default function SearchFilter({
 
   const sigunguList = sido ? (SIGUNGU_MAP[sido] || []) : [];
 
-  // 주소 검색 (카카오 Geocoder, 디바운스)
+  // 카카오 Geocoder로 주소 검색
+  const searchAddress = useCallback((query: string) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const kakao = (window as any).kakao;
+    if (!kakao?.maps?.services) return;
+
+    const geocoder = new kakao.maps.services.Geocoder();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    geocoder.addressSearch(query, (result: any[], status: string) => {
+      if (status === kakao.maps.services.Status.OK && result.length > 0) {
+        const seen = new Set<string>();
+        const regions: AddressResult[] = [];
+
+        for (const r of result) {
+          const addr = r.address;
+          if (!addr) continue;
+          const key = `${addr.region_1depth_name}|${addr.region_2depth_name}|${addr.region_3depth_name}`;
+          if (seen.has(key)) continue;
+          seen.add(key);
+          regions.push({
+            sido: addr.region_1depth_name,
+            sigungu: addr.region_2depth_name,
+            dong: addr.region_3depth_name,
+            display: [addr.region_1depth_name, addr.region_2depth_name, addr.region_3depth_name]
+              .filter(Boolean)
+              .join(' '),
+          });
+          if (regions.length >= 5) break;
+        }
+
+        setAddressResults(regions);
+        setShowResults(regions.length > 0);
+      } else {
+        setAddressResults([]);
+        setShowResults(false);
+      }
+    });
+  }, []);
+
+  // 디바운스 입력
   const handleAddressInput = useCallback((value: string) => {
     setAddressQuery(value);
 
@@ -72,53 +111,31 @@ export default function SearchFilter({
       return;
     }
 
-    debounceRef.current = setTimeout(() => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const kakao = (window as any).kakao;
-      if (!kakao?.maps?.services) return;
+    debounceRef.current = setTimeout(() => searchAddress(value), 300);
+  }, [searchAddress]);
 
-      const geocoder = new kakao.maps.services.Geocoder();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      geocoder.addressSearch(value, (result: any[], status: string) => {
-        if (status === kakao.maps.services.Status.OK && result.length > 0) {
-          // 지역 단위로 중복 제거
-          const seen = new Set<string>();
-          const regions: AddressResult[] = [];
-
-          for (const r of result) {
-            const addr = r.address;
-            if (!addr) continue;
-            const key = `${addr.region_1depth_name}|${addr.region_2depth_name}|${addr.region_3depth_name}`;
-            if (seen.has(key)) continue;
-            seen.add(key);
-            regions.push({
-              sido: addr.region_1depth_name,
-              sigungu: addr.region_2depth_name,
-              dong: addr.region_3depth_name,
-              display: [addr.region_1depth_name, addr.region_2depth_name, addr.region_3depth_name]
-                .filter(Boolean)
-                .join(' '),
-            });
-            if (regions.length >= 5) break;
-          }
-
-          setAddressResults(regions);
-          setShowResults(regions.length > 0);
-        } else {
-          setAddressResults([]);
-          setShowResults(false);
-        }
-      });
-    }, 300);
-  }, []);
-
-  // 주소 결과 클릭
-  const handleResultClick = (result: AddressResult) => {
+  // 결과 선택
+  const handleResultClick = useCallback((result: AddressResult) => {
     onAddressSelect(result.sido, result.sigungu, result.dong);
     setAddressQuery('');
     setAddressResults([]);
     setShowResults(false);
-  };
+  }, [onAddressSelect]);
+
+  // Enter 키 처리
+  const handleAddressKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (showResults && addressResults.length > 0) {
+        // 결과가 있으면 첫 번째 결과 선택
+        handleResultClick(addressResults[0]);
+      } else if (addressQuery.trim()) {
+        // 결과가 없으면 즉시 검색 실행
+        if (debounceRef.current) clearTimeout(debounceRef.current);
+        searchAddress(addressQuery);
+      }
+    }
+  }, [showResults, addressResults, addressQuery, searchAddress, handleResultClick]);
 
   // 외부 클릭 시 결과 닫기
   useEffect(() => {
@@ -141,6 +158,7 @@ export default function SearchFilter({
             type="text"
             value={addressQuery}
             onChange={(e) => handleAddressInput(e.target.value)}
+            onKeyDown={handleAddressKeyDown}
             placeholder="주소 검색 (예: 강남구 역삼동, 해운대구)"
             className="w-full pl-9 pr-3 py-2.5 border border-gray-300 rounded-lg text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
           />
@@ -205,7 +223,7 @@ export default function SearchFilter({
           className="flex-1 min-w-0 px-3 py-2.5 border border-gray-300 rounded-lg text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:text-gray-400"
         >
           <option value="">
-            {dongList.length === 0 ? '읍/면/동 (검색 후 선택)' : '전체'}
+            {dongList.length === 0 ? '읍/면/동 (검색 후 선택)' : '읍/면/동 전체'}
           </option>
           {dongList.map((d) => (
             <option key={d} value={d}>{d}</option>
