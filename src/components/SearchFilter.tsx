@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import { SIDO_LIST } from '@/lib/utils';
 import { SIGUNGU_MAP } from '@/lib/regions';
 import { DONG_MAP } from '@/lib/dong-data';
@@ -274,6 +275,16 @@ export default function SearchFilter({
       >
         {loading ? '검색중...' : '약국 검색'}
       </button>
+
+      {/* 지역별 정적 페이지 링크 */}
+      {sido && sigungu && (
+        <Link
+          href={`/${encodeURIComponent(sido)}/${encodeURIComponent(sigungu)}`}
+          className="block text-center text-xs text-gray-400 hover:text-green-600 transition-colors py-1"
+        >
+          {sigungu} 약국 전체 목록 보기 →
+        </Link>
+      )}
     </div>
   );
 }
