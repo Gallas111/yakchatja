@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <clipPath id="pill-clip">
+      <ellipse cx="0" cy="0" rx="40" ry="22"/>
+    </clipPath>
+  </defs>
+  <g transform="translate(50,50) rotate(-45)">
+    <ellipse cx="0" cy="0" rx="40" ry="22" fill="#E53935"/>
+    <rect x="0" y="-22" width="42" height="44" fill="#FFCDD2" clip-path="url(#pill-clip)"/>
+    <line x1="0" y1="-24" x2="0" y2="24" stroke="white" stroke-width="1.5" clip-path="url(#pill-clip)" opacity="0.8"/>
+    <ellipse cx="0" cy="0" rx="40" ry="22" fill="none" stroke="#B71C1C" stroke-width="1.5"/>
+  </g>
+</svg>
