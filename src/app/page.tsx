@@ -401,7 +401,7 @@ export default function Home() {
 
         {/* 지도 + 리스트 */}
         <div className="mt-3 sm:mt-4 grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
-          <div className="order-2 md:order-1 h-[300px] sm:h-[400px] md:h-[600px] md:sticky md:top-20">
+          <div className="order-1 md:order-1 h-[300px] sm:h-[400px] md:h-[600px] md:sticky md:top-20">
             <KakaoMap
               pharmacies={filteredPharmacies}
               userLat={userLat}
@@ -412,7 +412,7 @@ export default function Home() {
             />
           </div>
 
-          <div id="pharmacy-list" className="order-1 md:order-2">
+          <div id="pharmacy-list" className="order-2 md:order-2">
             <PharmacyList
               pharmacies={filteredPharmacies}
               distances={distances}
