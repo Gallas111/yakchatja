@@ -6,6 +6,6 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: '*',
       allow: '/',
     },
-    sitemap: 'https://www.yakchatja.com/sitemap.xml',
+    sitemap: 'https://yakchatja.com/sitemap.xml',
   };
 }

@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next';
 import { SIGUNGU_MAP } from '@/lib/regions';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://www.yakchatja.com';
+  const baseUrl = 'https://yakchatja.com';
 
   const regionUrls: MetadataRoute.Sitemap = Object.entries(SIGUNGU_MAP).flatMap(
     ([sido, sigunguList]) =>
