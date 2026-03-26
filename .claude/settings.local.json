@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc:*)",
+      "Bash(npm run:*)",
+      "Bash(git:*)",
+      "WebFetch(domain:www.yakchatja.com)",
+      "WebFetch(domain:datalab.naver.com)",
+      "WebFetch(domain:www.blackkiwi.net)",
+      "WebFetch(domain:trends.google.co.kr)",
+      "WebFetch(domain:trends.google.com)",
+      "WebSearch",
+      "WebFetch(domain:www.hitnews.co.kr)",
+      "WebFetch(domain:www.kpanews.co.kr)",
+      "WebFetch(domain:surffing.net)",
+      "WebFetch(domain:www.foodnews.co.kr)",
+      "Bash(cp:*)",
+      "Bash(npm install:*)",
+      "Bash(mkdir:*)",
+      "Bash(ls:*)",
+      "WebFetch(domain:unsplash.com)",
+      "WebFetch(domain:www.wellnesstodays.com)",
+      "Bash(gh secret:*)",
+      "Bash(node:*)",
+      "Bash(npx sharp:*)",
+      "Bash(curl:*)",
+      "Bash(seq 1:*)",
+      "Bash(echo === Blog 1 \\(mental-stress-relief-method\\) ===:*)",
+      "Bash(gh run:*)"
+    ]
+  }
+}

@@ -11,6 +11,13 @@ export async function GET(req: NextRequest) {
   const pageNo = parseInt(searchParams.get('pageNo') || '1');
   const numOfRows = parseInt(searchParams.get('numOfRows') || '100');
 
+  if (isNaN(pageNo) || pageNo < 1 || pageNo > 100 || isNaN(numOfRows) || numOfRows < 1 || numOfRows > 100) {
+    return NextResponse.json(
+      { error: 'pageNo와 numOfRows는 1~100 사이의 값이어야 합니다.' },
+      { status: 400 }
+    );
+  }
+
   try {
     const pharmacies = await fetchPharmacies({ Q0, Q1, QN, pageNo, numOfRows });
     return NextResponse.json({ pharmacies, count: pharmacies.length });
