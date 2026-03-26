@@ -39,3 +39,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# credentials & secrets
+google-credentials.json
+*.credentials.json
+keys.txt
+*.key
+*.bak
+
+# claude code
+.claude/
